@@ -1,0 +1,249 @@
+:root {
+  --preto: #000000;
+  --grafite: #222222;
+  --cinza: #6b6b6b;
+  --linha: #dcdcdc;
+  --fundo-img: #ececec;
+  --branco: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Archivo", Arial, Helvetica, sans-serif;
+  background: var(--branco);
+  color: var(--grafite);
+  line-height: 1.4;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover .manchete {
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 3px solid var(--preto);
+  outline-offset: 3px;
+}
+
+/* Topo */
+.topo-barra {
+  background: var(--preto);
+  color: var(--branco);
+  padding: 18px 32px;
+}
+
+.topo-barra h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.topo-menu {
+  display: flex;
+  gap: 28px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--linha);
+  overflow-x: auto;
+}
+
+.topo-menu a {
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cinza);
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+.topo-menu a:hover,
+.topo-menu a.ativo {
+  color: var(--preto);
+  border-bottom-color: var(--preto);
+}
+
+/* Página */
+.pagina {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+/* Destaque: manchete + laterais */
+.destaque {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--linha);
+}
+
+#laterais {
+  border-left: 1px solid var(--linha);
+  padding-left: 32px;
+}
+
+.n-principal {
+  display: block;
+}
+
+.n-principal .manchete {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin: 16px 0 10px;
+}
+
+.n-lateral {
+  display: block;
+  padding: 16px 0;
+  border-top: 1px solid var(--linha);
+}
+
+.n-lateral:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.n-lateral .manchete {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+/* Seção de notícias */
+.titulo-secao {
+  font-size: 22px;
+  font-weight: 800;
+  padding-top: 12px;
+  margin-bottom: 24px;
+  border-top: 4px solid var(--preto);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 32px 24px;
+}
+
+.n-item {
+  display: block;
+}
+
+.n-item .manchete {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 10px 0 6px;
+}
+
+/* Imagens */
+.n-principal img,
+.n-item img,
+.sem-imagem {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--fundo-img);
+}
+
+/* Fonte e hora */
+.meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--cinza);
+}
+
+.meta span:first-child {
+  font-weight: 700;
+  color: var(--grafite);
+}
+
+/* Rodapé */
+.rodape {
+  background: var(--preto);
+  color: #bdbdbd;
+  padding: 32px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Celular */
+@media (max-width: 800px) {
+  .pagina {
+    padding: 20px;
+  }
+
+  .topo-barra,
+  .topo-menu {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .destaque {
+    grid-template-columns: 1fr;
+  }
+
+  #laterais {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .n-principal .manchete {
+    font-size: 28px;
+  }
+}
+/* Filtro por fonte */
+.filtro-fontes {
+  display: flex;
+  gap: 8px;
+  padding: 12px 32px;
+  border-bottom: 1px solid var(--linha);
+  overflow-x: auto;
+}
+
+.filtro-fontes button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--grafite);
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filtro-fontes button:hover {
+  border-color: var(--preto);
+}
+
+.filtro-fontes button.ativo {
+  background: var(--preto);
+  color: var(--branco);
+  border-color: var(--preto);
+}
+
+.filtro-fontes button:focus-visible {
+  outline: 3px solid var(--preto);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .filtro-fontes {
+    padding: 12px 20px;
+  }
+}
