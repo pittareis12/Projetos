@@ -1,9 +1,13 @@
 const API = "http://localhost:3000";
 
+const menu = document.getElementById("topo-menu");
 const filtro = document.getElementById("filtro-fontes");
 const principal = document.getElementById("principal");
 const laterais = document.getElementById("laterais");
 const grade = document.getElementById("grade");
+
+let categoriaAtual = "politica";
+let pedidoAtual = 0;
 
 function tempoDesde(dataISO) {
   const minutos = Math.floor((Date.now() - new Date(dataISO)) / 60000);
@@ -57,20 +61,24 @@ function limpar() {
 }
 
 async function carregarNoticias(fonteId) {
+  const meuPedido = ++pedidoAtual;
   limpar();
   principal.textContent = "Carregando...";
 
   try {
-    const url = fonteId
-      ? `${API}/noticias?fonte=${fonteId}`
-      : `${API}/noticias`;
-    const resposta = await fetch(url);
+    const params = new URLSearchParams({ categoria: categoriaAtual });
+    if (fonteId) params.set("fonte", fonteId);
+
+    const resposta = await fetch(`${API}/noticias?${params}`);
     const noticias = await resposta.json();
+
+    // Se o leitor já clicou em outra aba, esta resposta chegou atrasada
+    if (meuPedido !== pedidoAtual) return;
 
     principal.textContent = "";
 
     if (!Array.isArray(noticias) || noticias.length === 0) {
-      principal.textContent = "Nenhuma notícia encontrada nesta fonte.";
+      principal.textContent = "Nenhuma notícia encontrada nesta aba.";
       return;
     }
 
@@ -84,15 +92,24 @@ async function carregarNoticias(fonteId) {
       grade.appendChild(criarNoticia(n, "item"));
     });
   } catch (erro) {
+    if (meuPedido !== pedidoAtual) return;
     principal.textContent = "Não foi possível carregar as notícias.";
     console.error(erro);
   }
 }
 
 async function carregarFontes() {
+  const categoria = categoriaAtual;
+
   try {
-    const resposta = await fetch(`${API}/fontes`);
+    const resposta = await fetch(`${API}/fontes?categoria=${categoria}`);
     const fontes = await resposta.json();
+
+    if (categoria !== categoriaAtual) return;
+
+    filtro.textContent = "";
+    if (fontes.length === 0) return;
+
     const todas = [{ id: "", nome: "Todas" }, ...fontes];
 
     todas.forEach((fonte, i) => {
@@ -114,5 +131,22 @@ async function carregarFontes() {
   }
 }
 
-carregarFontes();
-carregarNoticias("");
+function abrirCategoria() {
+  carregarFontes();
+  carregarNoticias("");
+}
+
+menu.querySelectorAll("a").forEach((link) => {
+  link.addEventListener("click", (evento) => {
+    evento.preventDefault();
+
+    menu.querySelectorAll("a").forEach((a) => {
+      a.classList.toggle("ativo", a === link);
+    });
+
+    categoriaAtual = link.dataset.categoria;
+    abrirCategoria();
+  });
+});
+
+abrirCategoria();

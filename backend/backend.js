@@ -5,16 +5,44 @@ const Parser = require("rss-parser");
 const app = express();
 app.use(cors());
 
-// "caminhos" é opcional: se existir, só passam as notícias cujo link contém um deles
+// categoria: aba do menu onde a fonte aparece
+// url: um feed | urls: vários feeds juntos
+// caminhos (opcional): só passam notícias cujo link contém um deles
 const FONTES = [
-  { id: "g1", nome: "G1", url: "https://g1.globo.com/rss/g1/politica/" },
+  {
+    id: "g1",
+    nome: "G1",
+    categoria: "politica",
+    url: "https://g1.globo.com/rss/g1/politica/"
+  },
   {
     id: "cnn",
     nome: "CNN Brasil",
+    categoria: "politica",
     url: "https://www.cnnbrasil.com.br/feed/",
     caminhos: ["/politica/", "/eleicoes/"]
   },
-  { id: "poder360", nome: "Poder360", url: "https://www.poder360.com.br/feed/" }
+  {
+    id: "poder360",
+    nome: "Poder360",
+    categoria: "politica",
+    url: "https://www.poder360.com.br/feed/"
+  },
+  {
+    id: "infomoney",
+    nome: "InfoMoney",
+    categoria: "economia",
+    urls: [
+      "https://www.infomoney.com.br/economia/feed/",
+      "https://www.infomoney.com.br/mercados/feed/"
+    ]
+  },
+  {
+    id: "valor",
+    nome: "Valor Econômico",
+    categoria: "economia",
+    url: "https://valor.globo.com/rss/valor"
+  }
 ];
 
 const parser = new Parser({
@@ -40,7 +68,7 @@ function pegarImagem(item) {
   return achou ? achou[1] : null;
 }
 
-// Cache por endereço do feed (assim, duas fontes com o mesmo feed não buscam duas vezes)
+// Cache por endereço do feed
 const cache = {};
 const CINCO_MIN = 5 * 60 * 1000;
 
@@ -61,35 +89,52 @@ async function buscarFeed(url) {
 }
 
 async function buscarFonte(fonte) {
-  const itens = await buscarFeed(fonte.url);
+  const urls = fonte.urls || [fonte.url];
+  const listas = await Promise.all(urls.map(buscarFeed));
+
+  // Junta os feeds e remove matérias repetidas (mesmo link)
+  const vistos = new Set();
+  const itens = [];
+  for (const item of listas.flat()) {
+    if (!item.link || vistos.has(item.link)) continue;
+    vistos.add(item.link);
+    itens.push(item);
+  }
 
   const filtrados = fonte.caminhos
     ? itens.filter((item) =>
-        fonte.caminhos.some((caminho) => item.link?.includes(caminho))
+        fonte.caminhos.some((caminho) => item.link.includes(caminho))
       )
     : itens;
 
-  return filtrados.slice(0, 12).map((item) => ({
-    titulo: item.title,
-    link: item.link,
-    imagem: pegarImagem(item),
-    fonte: fonte.nome,
-    fonteId: fonte.id,
-    data: item.isoDate || item.pubDate
-  }));
+  return filtrados
+    .map((item) => ({
+      titulo: item.title,
+      link: item.link,
+      imagem: pegarImagem(item),
+      fonte: fonte.nome,
+      fonteId: fonte.id,
+      data: item.isoDate || item.pubDate
+    }))
+    .sort((a, b) => new Date(b.data) - new Date(a.data))
+    .slice(0, 12);
 }
 
 app.get("/fontes", (req, res) => {
-  res.json(FONTES.map(({ id, nome }) => ({ id, nome })));
+  const { categoria } = req.query;
+  const lista = categoria
+    ? FONTES.filter((f) => f.categoria === categoria)
+    : FONTES;
+
+  res.json(lista.map(({ id, nome }) => ({ id, nome })));
 });
 
 app.get("/noticias", async (req, res) => {
-  const { fonte } = req.query;
-  const escolhidas = fonte ? FONTES.filter((f) => f.id === fonte) : FONTES;
+  const { categoria, fonte } = req.query;
 
-  if (escolhidas.length === 0) {
-    return res.status(404).json({ erro: "Fonte não encontrada." });
-  }
+  let escolhidas = FONTES;
+  if (categoria) escolhidas = escolhidas.filter((f) => f.categoria === categoria);
+  if (fonte) escolhidas = escolhidas.filter((f) => f.id === fonte);
 
   const listas = await Promise.all(escolhidas.map(buscarFonte));
   const todas = listas
