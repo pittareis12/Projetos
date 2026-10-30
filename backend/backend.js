@@ -34,8 +34,10 @@ const FONTES = [
     categoria: "economia",
     urls: [
       "https://www.infomoney.com.br/economia/feed/",
-      "https://www.infomoney.com.br/mercados/feed/"
-    ]
+      "https://www.infomoney.com.br/mercados/feed/",
+      "https://www.infomoney.com.br/feed/"
+    ],
+    caminhos: ["/economia/", "/mercados/", "/business/"]
   },
   {
     id: "valor",
@@ -67,6 +69,8 @@ function pegarImagem(item) {
   const achou = html.match(/<img[^>]+src="([^"]+)"/);
   return achou ? achou[1] : null;
 }
+
+// ---------- Notícias ----------
 
 // Cache por endereço do feed
 const cache = {};
@@ -142,6 +146,71 @@ app.get("/noticias", async (req, res) => {
     .sort((a, b) => new Date(b.data) - new Date(a.data));
 
   res.json(todas);
+});
+
+// ---------- Cotações (letreiro) ----------
+
+// Cria uma versão de "buscar" que guarda o resultado por um tempo
+function comCache(buscar, ms) {
+  let guardado = null;
+
+  return async () => {
+    if (guardado && Date.now() - guardado.hora < ms) return guardado.dados;
+
+    try {
+      const dados = await buscar();
+      guardado = { dados, hora: Date.now() };
+      return dados;
+    } catch (erro) {
+      console.error("Erro em cotações:", erro.message);
+      return guardado ? guardado.dados : [];
+    }
+  };
+}
+
+const MOEDAS = { USDBRL: "Dólar", EURBRL: "Euro", BTCBRL: "Bitcoin" };
+
+async function buscarMoedas() {
+  const resposta = await fetch(
+    "https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL"
+  );
+  if (!resposta.ok) throw new Error(`AwesomeAPI respondeu ${resposta.status}`);
+  const dados = await resposta.json();
+
+  return Object.entries(MOEDAS)
+    .filter(([codigo]) => dados[codigo])
+    .map(([codigo, nome]) => ({
+      nome,
+      valor: Number(dados[codigo].bid),
+      variacao: Number(dados[codigo].pctChange),
+      prefixo: "R$"
+    }));
+}
+
+async function buscarBolsa() {
+  const token = process.env.BRAPI_TOKEN;
+  const simbolos = token ? "^BVSP,PETR4,VALE3,ITUB4" : "PETR4,VALE3,ITUB4";
+
+  const resposta = await fetch(`https://brapi.dev/api/quote/${simbolos}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  if (!resposta.ok) throw new Error(`brapi respondeu ${resposta.status}`);
+  const dados = await resposta.json();
+
+  return dados.results.map((r) => ({
+    nome: r.symbol === "^BVSP" ? "Ibovespa" : r.symbol,
+    valor: r.regularMarketPrice,
+    variacao: r.regularMarketChangePercent,
+    prefixo: r.symbol === "^BVSP" ? "" : "R$"
+  }));
+}
+
+const moedasComCache = comCache(buscarMoedas, 60 * 1000);
+const bolsaComCache = comCache(buscarBolsa, 15 * 60 * 1000);
+
+app.get("/cotacoes", async (req, res) => {
+  const [bolsa, moedas] = await Promise.all([bolsaComCache(), moedasComCache()]);
+  res.json([...bolsa, ...moedas]);
 });
 
 app.listen(3000, () => {

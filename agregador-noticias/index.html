@@ -6,38 +6,60 @@
   <title>Notícias</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div class="topo-barra">
-      <h1>Notícias</h1>
+  <header class="topo">
+    <div class="topo-conteudo">
+      <a href="#" class="marca" aria-label="Notícias, início">
+        <span class="marca-icone">N</span>
+        <span class="marca-nome">Notícias</span>
+      </a>
+
+      <input type="search" id="busca" class="busca" placeholder="Buscar nas notícias" aria-label="Buscar nas notícias">
+
+      <nav class="menu" id="topo-menu" aria-label="Categorias">
+        <a href="#" class="ativo" data-categoria="politica">Política</a>
+        <a href="#" data-categoria="economia">Economia</a>
+        <a href="#" data-categoria="brasil">Brasil</a>
+        <a href="#" data-categoria="geopolitica">Geopolítica</a>
+      </nav>
     </div>
-<nav class="topo-menu" id="topo-menu">
-  <a href="#" class="ativo" data-categoria="politica">Política</a>
-  <a href="#" data-categoria="economia">Economia</a>
-  <a href="#" data-categoria="brasil">Brasil</a>
-  <a href="#" data-categoria="geopolitica">Geopolítica</a>
-</nav>
-    <div class="filtro-fontes" id="filtro-fontes"></div>
+
+    <div class="letreiro" aria-label="Cotações de mercado">
+      <div class="letreiro-faixa" id="letreiro"></div>
+    </div>
   </header>
 
-  <main class="pagina">
-    <section class="destaque">
-      <div id="principal"></div>
-      <div id="laterais"></div>
-    </section>
+  <div class="pagina">
+    <aside class="coluna-esquerda">
+      <section class="painel perfil">
+        <div class="perfil-capa"></div>
+        <div class="perfil-corpo">
+          <span class="perfil-icone">N</span>
+          <h1>Notícias</h1>
+          <p>Manchetes de vários veículos, em um só lugar.</p>
+        </div>
+      </section>
 
-    <section>
-      <h2 class="titulo-secao">Mais notícias</h2>
-      <div id="grade" class="grade"></div>
-    </section>
-  </main>
+      <section class="painel">
+        <h2 class="painel-titulo">Fontes</h2>
+        <div class="fontes" id="filtro-fontes"></div>
+      </section>
+    </aside>
 
-  <footer class="rodape">
-    <p>Este site apenas reúne links. Todo o conteúdo pertence aos veículos de origem.</p>
-  </footer>
+    <main class="feed" id="feed"></main>
+
+    <aside class="coluna-direita">
+      <section class="painel">
+        <h2 class="painel-titulo">A mais recente de cada veículo</h2>
+        <div id="por-veiculo"></div>
+      </section>
+
+      <p class="aviso">Este site apenas reúne links. Todo o conteúdo pertence aos veículos de origem.</p>
+    </aside>
+  </div>
 
   <script src="script.js"></script>
 </body>
